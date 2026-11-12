@@ -15,14 +15,14 @@ public class User
     public static User Create(
             string userName,
             string email,
-            string passwordHash,
+            string password,
             Role role
             ) => new()
             {
                 Id = Guid.NewGuid(),
                 UserName = userName,
                 Email = email,
-                PasswordHash = passwordHash,
+                PasswordHash = password,
                 Role = role,
                 CreateAt = DateTime.UtcNow
             };
