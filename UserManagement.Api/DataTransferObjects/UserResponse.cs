@@ -6,5 +6,5 @@ public record UserResponse(
     string Email,
     string Role,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime? UpdatedAt
         );
