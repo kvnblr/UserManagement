@@ -1,6 +1,10 @@
 using UserManagement.Api.Contracts;
 using UserManagement.Api.Data;
+using UserManagement.Api.DataTransferObjects;
 using UserManagement.Api.Security;
+using Microsoft.EntityFrameworkCore;
+using UserManagement.Api.Exceptions;
+using UserManagement.Api.Domain;
 
 namespace UserManagement.Api.Services;
 
@@ -15,5 +19,31 @@ public sealed class UserService : IUserService
         _context = context;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
+    }
+
+    public async Task<UserResponse> RegisterAsync(RegisterUserRequest request, CancellationToken cancellationToken = default)
+    {
+        var userName = request.Name.Trim().ToLowerInvariant();
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        var exists = await _context.Users.AnyAsync(
+                u => u.UserName == userName || u.Email == email,
+                cancellationToken);
+
+        if (exists)
+        {
+            throw new DuplicateUserException("Username or email is already taken.");
+        }
+
+        var user = User.Create(
+                 userName,
+                 email,
+                 _passwordHasher.Hash(request.Password),
+                 Role.User);
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return user.ToResponse();
     }
 }
