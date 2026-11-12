@@ -1,3 +1,6 @@
+using UserManagement.Api.Domain;
+using UserManagement.Api.Security;
+
 namespace UserManagement.Api.Tests.Unit;
 
 public sealed class FakeTokenService
