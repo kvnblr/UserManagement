@@ -21,6 +21,27 @@ public sealed class UserService : IUserService
         _tokenService = tokenService;
     }
 
+    public async Task<TokenResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    {
+        var identifier = request.UserNameOrEmail.Trim().ToLowerInvariant();
+
+        var user = await _context.Users.FirstOrDefaultAsync(
+                u => u.UserName == identifier || u.Email == identifier,
+                cancellationToken);
+
+        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        var accessToken = _tokenService.CreateAccessToken(user);
+
+        return new TokenResponse(
+            accessToken.Token,
+            accessToken.ExpiredAtUtc,
+            user.ToResponse());
+    }
+
     public async Task<UserResponse> RegisterAsync(RegisterUserRequest request, CancellationToken cancellationToken = default)
     {
         var userName = request.Name.Trim().ToLowerInvariant();
@@ -46,4 +67,6 @@ public sealed class UserService : IUserService
 
         return user.ToResponse();
     }
+
+
 }
