@@ -69,4 +69,24 @@ public class UserServiceTests
             .Should()
             .ThrowAsync<DuplicateUserException>();
     }
+
+    [Fact]
+    public async Task RegisterAsync_throws_when_email_exists()
+    {
+        using var db = CreateContext();
+        var sut = CreateSut(db);
+
+        db.Users.Add(CreateUser());
+        await db.SaveChangesAsync();
+
+        var request = new RegisterUserRequest(
+            "newuser",
+            "ALICE@example.com",
+            "Password123!");
+
+        await sut
+            .Invoking(s => s.RegisterAsync(request))
+            .Should()
+            .ThrowAsync<DuplicateUserException>();
+    }
 }
