@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Api.Data;
 using UserManagement.Api.DataTransferObjects;
 using UserManagement.Api.Domain;
+using UserManagement.Api.Exceptions;
 using UserManagement.Api.Services;
 using UserManagement.Api.Tests.Unit;
 
@@ -47,5 +48,25 @@ public class UserServiceTests
         result.Role.Should().Be(Role.User.ToString());
 
         database.Users.Single().PasswordHash.Should().Be("hashed:Password123!");
+    }
+
+    [Fact]
+    public async Task RegisterAsync_throws_when_username_exist()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        database.Users.Add(CreateUser());
+        await database.SaveChangesAsync();
+
+        var request = new RegisterUserRequest(
+            "Alice",
+            "Alice@Example.com",
+            "Password123!");
+
+        await sut
+            .Invoking(s => s.RegisterAsync(request))
+            .Should()
+            .ThrowAsync<DuplicateUserException>();
     }
 }
