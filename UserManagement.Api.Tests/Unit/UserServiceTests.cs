@@ -25,7 +25,7 @@ public class UserServiceTests
         => User.Create(
                 userName: "alice",
                 email: "alice@example.com",
-                password: "Password123!",
+                password: "hashed:Password123!",
                 role: Role.User
                 );
 
@@ -88,5 +88,24 @@ public class UserServiceTests
             .Invoking(s => s.RegisterAsync(request))
             .Should()
             .ThrowAsync<DuplicateUserException>();
+    }
+
+    [Fact]
+    public async Task LoginAsync_returns_token_when_creditials_are_valid()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user = CreateUser();
+        database.Users.Add(user);
+        await database.SaveChangesAsync();
+
+        var request = new LoginRequest("alice", "Password123!");
+
+        var result = await sut.LoginAsync(request);
+
+        result.AccessToken.Should().Be($"token-{user.Id:N}");
+        result.User.Id.Should().Be(user.Id);
+        result.User.UserName.Should().Be("alice");
     }
 }
