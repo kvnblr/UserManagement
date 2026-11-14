@@ -16,6 +16,21 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
+
+            entity.Property(u => u.UserName)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.HasIndex(u => u.UserName)
+                .IsUnique();
+
+            entity.Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.HasIndex(u => u.Email)
+                .IsUnique();
+
             entity.Property(u => u.Role)
                 .HasConversion<string>()
                 .IsRequired();
