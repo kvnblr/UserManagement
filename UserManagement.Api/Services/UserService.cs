@@ -21,6 +21,12 @@ public sealed class UserService : IUserService
         _tokenService = tokenService;
     }
 
+    public async Task<UserResponse> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken) ?? throw new UserNotFoundException(id);
+        return user.ToResponse();
+    }
+
     public async Task<TokenResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var identifier = request.UserNameOrEmail.Trim().ToLowerInvariant();
