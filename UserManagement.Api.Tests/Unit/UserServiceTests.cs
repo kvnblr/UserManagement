@@ -140,4 +140,20 @@ public class UserServiceTests
             .Should()
             .ThrowAsync<InvalidCredentialsException>();
     }
+
+    [Fact]
+    public async Task GetByIdAsync_returns_user_when_user_exists()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user = CreateUser();
+        database.Users.Add(user);
+        await database.SaveChangesAsync();
+
+        var result = await sut.GetByIdAsync(user.Id);
+
+        result.Id.Should().Be(user.Id);
+        result.UserName.Should().Be("alice");
+    }
 }
