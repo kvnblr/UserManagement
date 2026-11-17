@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Api.Data;
@@ -107,5 +108,22 @@ public class UserServiceTests
         result.AccessToken.Should().Be($"token-{user.Id:N}");
         result.User.Id.Should().Be(user.Id);
         result.User.UserName.Should().Be("alice");
+    }
+
+    [Fact]
+    public async Task LoginAsync_throws_when_password_is_invalid()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        database.Users.Add(CreateUser());
+        await database.SaveChangesAsync();
+
+        var request = new LoginRequest("alice", "wrong-password");
+
+        await sut
+            .Invoking(s => s.LoginAsync(request))
+            .Should()
+            .ThrowAsync<InvalidCredentialsException>();
     }
 }
