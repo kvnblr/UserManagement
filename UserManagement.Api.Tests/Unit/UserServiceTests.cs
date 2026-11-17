@@ -126,4 +126,18 @@ public class UserServiceTests
             .Should()
             .ThrowAsync<InvalidCredentialsException>();
     }
+
+    [Fact]
+    public async Task LoginAsync_throws_when_user_does_not_exists()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var request = new LoginRequest("missing", "Password123!");
+
+        await sut
+            .Invoking(s => s.LoginAsync(request))
+            .Should()
+            .ThrowAsync<InvalidCredentialsException>();
+    }
 }
