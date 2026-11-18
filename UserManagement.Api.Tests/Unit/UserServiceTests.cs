@@ -156,4 +156,18 @@ public class UserServiceTests
         result.Id.Should().Be(user.Id);
         result.UserName.Should().Be("alice");
     }
+
+    [Fact]
+    public async Task GetByIdAsync_throws_when_user_does_not_exist()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var missingId = Guid.NewGuid();
+
+        await sut
+            .Invoking(s => s.GetByIdAsync(missingId))
+            .Should()
+            .ThrowAsync<UserNotFoundException>();
+    }
 }
