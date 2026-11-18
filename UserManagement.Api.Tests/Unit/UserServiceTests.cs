@@ -247,4 +247,24 @@ public class UserServiceTests
         var exists = await database.Users.AnyAsync(u => u.Id == user.Id);
         exists.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task ChangePasswordAsync_updates_password_hash()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user = CreateUser();
+        database.Users.Add(user);
+        await database.SaveChangesAsync();
+
+        var request = new ChangePasswordRequest(
+                "Password123!",
+                "NewPassword456!"
+                );
+        await sut.ChangePasswordAsync(user.Id, request);
+
+        var updated = await database.Users.SingleAsync(u => u.Id == user.Id);
+        updated.PasswordHash.Should().Be("hashed:NewPassword456!");
+    }
 }
