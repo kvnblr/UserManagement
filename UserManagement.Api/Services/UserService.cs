@@ -21,6 +21,24 @@ public sealed class UserService : IUserService
         _tokenService = tokenService;
     }
 
+    public async Task ChangePasswordAsync(Guid id, ChangePasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
+        if (user is null)
+        {
+            throw new UserNotFoundException(id);
+        }
+
+        if (!_passwordHasher.Verify(request.password, user.PasswordHash))
+        {
+            throw new InvalidCredentialsException();
+        }
+
+        user.ChangePassword(_passwordHasher.Hash(request.newPassword));
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
