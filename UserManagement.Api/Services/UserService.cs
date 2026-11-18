@@ -89,5 +89,34 @@ public sealed class UserService : IUserService
         return user.ToResponse();
     }
 
+    public async Task<UserResponse> UpdateUsernameAsync(Guid id, UpdateUsernameRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 
+        if (user is null)
+        {
+            throw new UserNotFoundException(id);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.UserName))
+        {
+            var userName = request.UserName.Trim().ToLowerInvariant();
+
+            var userNameExists = await _context.Users.AnyAsync(
+                    u => u.UserName == userName && u.Id != id,
+                    cancellationToken
+                    );
+
+            if (userNameExists)
+            {
+                throw new DuplicateUserException("Username already exists in the database");
+            }
+
+            user.UpdateUsername(userName);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return user.ToResponse();
+    }
 }
