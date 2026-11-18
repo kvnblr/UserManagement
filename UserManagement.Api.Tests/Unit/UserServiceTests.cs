@@ -231,4 +231,20 @@ public class UserServiceTests
             .Should()
             .ThrowAsync<DuplicateUserException>();
     }
+
+    [Fact]
+    public async Task DeleteAsync_remove_user()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user = CreateUser();
+        database.Users.Add(user);
+        await database.SaveChangesAsync();
+
+        await sut.DeleteAsync(user.Id);
+
+        var exists = await database.Users.AnyAsync(u => u.Id == user.Id);
+        exists.Should().BeFalse();
+    }
 }
