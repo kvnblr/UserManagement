@@ -10,4 +10,5 @@ public interface IUserService
     Task<IReadOnlyList<UserResponse>> ListAsync(CancellationToken cancellationToken = default);
     Task<UserResponse> UpdateUsernameAsync(Guid id, UpdateUsernameRequest request, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task ChangePasswordAsync(Guid id, ChangePasswordRequest request, CancellationToken cancellationToken = default);
 }
