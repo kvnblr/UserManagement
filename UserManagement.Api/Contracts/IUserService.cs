@@ -9,4 +9,5 @@ public interface IUserService
     Task<UserResponse> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<UserResponse>> ListAsync(CancellationToken cancellationToken = default);
     Task<UserResponse> UpdateUsernameAsync(Guid id, UpdateUsernameRequest request, CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
