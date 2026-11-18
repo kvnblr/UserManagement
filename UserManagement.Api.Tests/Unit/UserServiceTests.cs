@@ -193,4 +193,21 @@ public class UserServiceTests
 
         result.Should().HaveCount(2);
     }
+
+    [Fact]
+    public async Task UpdateAsync_changes_username()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user = CreateUser();
+        database.Users.Add(user);
+        await database.SaveChangesAsync();
+
+        var request = new UpdateUsernameRequest("alice2");
+
+        var result = await sut.UpdateUsernameAsync(user.Id, request);
+
+        result.UserName.Should().Be("alice2");
+    }
 }
