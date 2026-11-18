@@ -21,6 +21,18 @@ public sealed class UserService : IUserService
         _tokenService = tokenService;
     }
 
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (user is null)
+        {
+            throw new UserNotFoundException(id);
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<UserResponse> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken) ?? throw new UserNotFoundException(id);
