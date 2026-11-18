@@ -195,7 +195,7 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_changes_username()
+    public async Task UpdateUsernameAsync_changes_username()
     {
         using var database = CreateContext();
         var sut = CreateSut(database);
@@ -209,5 +209,26 @@ public class UserServiceTests
         var result = await sut.UpdateUsernameAsync(user.Id, request);
 
         result.UserName.Should().Be("alice2");
+    }
+
+    [Fact]
+    public async Task UpdateUsernameAsync_throws_when_email_belongs_to_another_user()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        var user1 = CreateUser();
+        var user2 = CreateUser("bob", "bob@example.com");
+
+        database.Users.Add(user1);
+        database.Users.Add(user2);
+        await database.SaveChangesAsync();
+
+        var request = new UpdateUsernameRequest("bob");
+
+        await sut
+            .Invoking(s => s.UpdateUsernameAsync(user1.Id, request))
+            .Should()
+            .ThrowAsync<DuplicateUserException>();
     }
 }
