@@ -27,6 +27,21 @@ public sealed class UserService : IUserService
         return user.ToResponse();
     }
 
+    public async Task<IReadOnlyList<UserResponse>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .OrderBy(u => u.UserName)
+            .Select(u => new UserResponse(
+                        u.Id,
+                        u.UserName,
+                        u.Email,
+                        u.Role.ToString(),
+                        u.CreateAt,
+                        u.UpdateAt
+                        )).ToListAsync(cancellationToken);
+    }
+
     public async Task<TokenResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var identifier = request.UserNameOrEmail.Trim().ToLowerInvariant();
