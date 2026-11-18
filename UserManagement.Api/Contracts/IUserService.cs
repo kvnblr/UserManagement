@@ -7,4 +7,5 @@ public interface IUserService
     Task<UserResponse> RegisterAsync(RegisterUserRequest request, CancellationToken cancellationToken = default);
     Task<TokenResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
     Task<UserResponse> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserResponse>> ListAsync(CancellationToken cancellationToken = default);
 }
