@@ -30,6 +30,14 @@ public class UserServiceTests
                 role: Role.User
                 );
 
+    private static User CreateUser(string userName, string email) =>
+        User.Create(
+                userName: userName,
+                email: email,
+                password: "hashed:Password!23!",
+                role: Role.User
+                );
+
     [Fact]
     public async Task RegisterAsync_creates_user_with_hashed_password_and_user_role()
     {
@@ -169,5 +177,20 @@ public class UserServiceTests
             .Invoking(s => s.GetByIdAsync(missingId))
             .Should()
             .ThrowAsync<UserNotFoundException>();
+    }
+
+    [Fact]
+    public async Task ListAsync_returns_all_users()
+    {
+        using var database = CreateContext();
+        var sut = CreateSut(database);
+
+        database.Users.Add(CreateUser());
+        database.Users.Add(CreateUser("bob", "bob@example.com"));
+        await database.SaveChangesAsync();
+
+        var result = await sut.ListAsync();
+
+        result.Should().HaveCount(2);
     }
 }
