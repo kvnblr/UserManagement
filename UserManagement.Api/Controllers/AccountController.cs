@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Api.Contracts;
 using UserManagement.Api.DataTransferObjects;
@@ -32,4 +35,21 @@ public sealed class AccountController : ControllerBase
         var token = await _service.LoginAsync(request, cancellationToken);
         return Ok(token);
     }
+
+    [Authorize]
+    [HttpGet("current")]
+    public async Task<ActionResult<UserResponse>> CurrentUser(CancellationToken cancellationToken)
+    {
+        var currentUser = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(currentUser, out Guid userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _service.GetByIdAsync(userId, cancellationToken);
+        return Ok(user);
+    }
+
 }
