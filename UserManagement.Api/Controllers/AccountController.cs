@@ -25,4 +25,11 @@ public sealed class AccountController : ControllerBase
                 new { id = user.Id },
                 user);
     }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+    {
+        var token = await _service.LoginAsync(request, cancellationToken);
+        return Ok(token);
+    }
 }
