@@ -1,6 +1,10 @@
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using UserManagement.Api.Contracts;
 using UserManagement.Api.Controllers;
+using UserManagement.Api.DataTransferObjects;
+using UserManagement.Api.Domain;
 
 namespace UserManagement.Api.Tests.Unit;
 
@@ -12,5 +16,34 @@ public class AccountControllerTests
     public AccountControllerTests()
     {
         _controller = new AccountController(_service);
+    }
+
+    [Fact]
+    public async Task Register_returns_created_with_user()
+    {
+        var request = new RegisterUserRequest(
+                "alice",
+                "alice@example.com",
+                "Password123!");
+
+        var response = new UserResponse(
+                Guid.NewGuid(),
+                "alice",
+                "alice@example.com",
+                Role.User.ToString(),
+                DateTime.UtcNow,
+                DateTime.UtcNow);
+
+        _service
+            .RegisterAsync(request, Arg.Any<CancellationToken>())
+            .Returns(response);
+
+        var result = await _controller.Register(request, CancellationToken.None);
+
+        var created = result.Result as CreatedAtActionResult;
+
+        created.Should().NotBeNull();
+        created!.Value.Should().BeEquivalentTo(response);
+        created.RouteValues!["id"].Should().Be(response.Id);
     }
 }
