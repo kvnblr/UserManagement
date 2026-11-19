@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using UserManagement.Api.Contracts;
@@ -75,5 +76,18 @@ public class AccountControllerTests
 
         ok.Should().NotBeNull();
         ok!.Value.Should().BeEquivalentTo(token);
+    }
+
+    [Fact]
+    public async Task CurrentUser_returns_unauthorized_when_user_has_no_subject()
+    {
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        var result = await _controller.CurrentUser(CancellationToken.None);
+
+        result.Result.Should().BeOfType<UnauthorizedResult>();
     }
 }
