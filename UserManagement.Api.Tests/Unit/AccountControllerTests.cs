@@ -46,4 +46,34 @@ public class AccountControllerTests
         created!.Value.Should().BeEquivalentTo(response);
         created.RouteValues!["id"].Should().Be(response.Id);
     }
+
+    [Fact]
+    public async Task Login_returns_ok_with_token()
+    {
+        var request = new LoginRequest("alice", "Password123!");
+
+        var user = new UserResponse(
+            Guid.NewGuid(),
+            "alice",
+            "alice@example.com",
+            Role.User.ToString(),
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        var token = new TokenResponse(
+                "token",
+                DateTime.UtcNow.AddHours(1),
+                user);
+
+        _service
+            .LoginAsync(request, Arg.Any<CancellationToken>())
+            .Returns(token);
+
+        var result = await _controller.Login(request, CancellationToken.None);
+
+        var ok = result.Result as OkObjectResult;
+
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(token);
+    }
 }
