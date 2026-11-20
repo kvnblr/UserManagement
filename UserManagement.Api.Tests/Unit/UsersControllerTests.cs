@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using UserManagement.Api.Contracts;
 using UserManagement.Api.Controllers;
+using UserManagement.Api.DataTransferObjects;
 using UserManagement.Api.Domain;
 
 namespace UserManagement.Api.Tests.Unit;
@@ -51,5 +52,32 @@ public class UsersControllerTests
         var result = await _controller.GetById(ownerId, CancellationToken.None);
 
         result.Result.Should().BeOfType<ForbidResult>();
+    }
+
+    [Fact]
+    public async Task GetById_returns_ok_when_user_is_owner()
+    {
+        var userId = Guid.NewGuid();
+
+        var response = new UserResponse(
+                userId,
+                "alice",
+                "alice@example.com",
+                Role.User.ToString(),
+                DateTime.UtcNow,
+                DateTime.UtcNow);
+
+        _service
+            .GetByIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(response);
+
+        _controller.ControllerContext = CreateUserContext(userId, Role.User.ToString());
+
+        var result = await _controller.GetById(userId, CancellationToken.None);
+
+        var ok = result.Result as OkObjectResult;
+
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
     }
 }
