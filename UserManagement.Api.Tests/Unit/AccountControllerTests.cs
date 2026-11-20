@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -90,4 +92,42 @@ public class AccountControllerTests
 
         result.Result.Should().BeOfType<UnauthorizedResult>();
     }
+
+    [Fact]
+    public async Task CurrentUser_returns_user_when_subject_exists()
+    {
+        var userId = Guid.NewGuid();
+
+        var response = new UserResponse(
+            userId,
+            "alice",
+            "alice@example.com",
+            Role.User.ToString(),
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        _service
+            .GetByIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(response);
+
+        var httpContext = new DefaultHttpContext();
+
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                    new Claim(JwtRegisteredClaimNames.Sub, userId.ToString())
+                    }));
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
+        var result = await _controller.CurrentUser(CancellationToken.None);
+
+        var ok = result.Result as OkObjectResult;
+
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(response);
+    }
+
 }
