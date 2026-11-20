@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Api.Contracts;
 using UserManagement.Api.DataTransferObjects;
@@ -51,5 +52,13 @@ public sealed class UsersController : ControllerBase
 
         var user = await _service.UpdateUsernameAsync(id, request, cancellationToken);
         return Ok(user);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = nameof(Role.Admin))]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _service.DeleteAsync(id, cancellationToken);
+        return NoContent();
     }
 }
