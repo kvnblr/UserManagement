@@ -80,4 +80,33 @@ public class UsersControllerTests
         ok.Should().NotBeNull();
         ok!.Value.Should().BeEquivalentTo(response);
     }
+
+    [Fact]
+    public async Task Update_returns_forbid_when_user_is_not_owner_and_not_admin()
+    {
+        var ownerId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+
+        _controller.ControllerContext = CreateUserContext(currentUserId, Role.User.ToString());
+
+        var request = new UpdateUsernameRequest("updated");
+
+        var result = await _controller.Update(ownerId, request, CancellationToken.None);
+
+        result.Result.Should().BeOfType<ForbidResult>();
+    }
+
+    [Fact]
+    public async Task Delete_calls_service_and_returns_no_content()
+    {
+        var userId = Guid.NewGuid();
+
+        _controller.ControllerContext = CreateUserContext(userId, Role.Admin.ToString());
+
+        var result = await _controller.Delete(userId, CancellationToken.None);
+
+        result.Should().BeOfType<NoContentResult>();
+
+        await _service.Received(1).DeleteAsync(userId, Arg.Any<CancellationToken>());
+    }
 }
