@@ -1,10 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using UserManagement.Api.Contracts;
 using UserManagement.Api.Controllers;
+using UserManagement.Api.Domain;
 
 namespace UserManagement.Api.Tests.Unit;
 
@@ -36,5 +38,18 @@ public class UsersControllerTests
                 User = principal
             }
         };
+    }
+
+    [Fact]
+    public async Task GetById_returns_forbid_when_user_is_not_owner_and_not_admin()
+    {
+        var ownerId = Guid.NewGuid();
+        var currentUserId = Guid.NewGuid();
+
+        _controller.ControllerContext = CreateUserContext(currentUserId, Role.User.ToString());
+
+        var result = await _controller.GetById(ownerId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<ForbidResult>();
     }
 }
