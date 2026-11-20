@@ -35,4 +35,21 @@ public sealed class UsersController : ControllerBase
 
         return Ok(user);
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<UserResponse>> Update(Guid id, [FromBody] UpdateUsernameRequest request, CancellationToken cancellationToken)
+    {
+        var currentUser = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Guid.TryParse(currentUser, out Guid userId);
+
+        if (!(User.IsInRole(Role.Admin.ToString()) || userId == id))
+        {
+            return Forbid();
+        }
+
+        var user = await _service.UpdateUsernameAsync(id, request, cancellationToken);
+        return Ok(user);
+    }
 }
